@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { login } from "@/lib/redux/features/authSlice";
+import { AppDispatch } from "@/lib/redux/store"; // Import AppDispatch type
+import { loginUser } from "@/lib/redux/features/authSlice"; // Import the async thunk
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -11,7 +12,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>(); // Use the correct dispatch type
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,21 +20,12 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-          credentials: "include", // Ensure cookies are sent with the request
-        },
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        dispatch(login(data.user));
-      } else {
-        setError(data.message || "Login failed. Please try again.");
+      // Dispatch the async thunk action
+      const resultAction = await dispatch(loginUser({ email, password }));
+      
+      if (loginUser.rejected.match(resultAction)) {
+        // Handle error if login failed
+        setError(resultAction.error.message || "Login failed. Please try again.");
       }
     } catch (error) {
       setError("Something went wrong. Please try again.");

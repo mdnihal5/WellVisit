@@ -3,18 +3,20 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { bookAppointment } from "@/lib/redux/features/appointmentSlice";
-import { setDoctors } from "@/lib/redux/features/doctorSlice"; // Import the setDoctors action
+import { fetchDoctors } from "@/lib/redux/features/doctorSlice"; // Import fetchDoctors action
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { AppDispatch } from "@/lib/redux/store";
 
 // Define types for Doctor, User, and Redux State
 interface Doctor {
-  id: string;
+  _id: string;  // Change to _id instead of id
   name: string;
   specialty: string;
 }
 
 interface User {
+  name: string;
   id: string;
   role: "doctor" | "patient";
 }
@@ -31,40 +33,19 @@ interface RootState {
 
 const AppointmentForm = () => {
   const [doctorId, setDoctorId] = useState<string>("");
+  const [doctorName, setDoctorName] = useState<string>("");  // Added doctorName state
   const [date, setDate] = useState<string>("");
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   // Access doctors and user data from Redux state
   const { list: doctors } = useSelector((state: RootState) => state.doctors);
   const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth,
+    (state: RootState) => state.auth
   );
 
   // Fetch doctors when the component mounts
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/doctors`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          },
-        );
-
-        const data = await response.json();
-        if (response.ok) {
-          dispatch(setDoctors(data));
-        } else {
-          console.error("Failed to fetch doctors:", data.message);
-        }
-      } catch (error) {
-        console.error("Error fetching doctors:", error);
-      }
-    };
-
-    fetchDoctors();
+    dispatch(fetchDoctors()); // Fetch doctors from the Redux store
   }, [dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,31 +61,38 @@ const AppointmentForm = () => {
       return;
     }
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/appointments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            doctorId,
-            patientId: user.id,
-            appointmentDate: date,
-            status: "upcoming",
-          }),
-          credentials: "include",
-        },
-      );
+    const appointment = {
+      doctorId,
+      doctorName,  // Include doctorName in the appointment data
+      patientId: user.id,
+      appointmentDate: date,
+      patientName: user.name || '',
+      status: "upcoming", // Set status to "upcoming"
+    };
 
-      const data = await response.json();
-      if (response.ok) {
-        dispatch(bookAppointment(data.appointment));
-        console.log("Appointment booked successfully");
-      } else {
-        console.error("Booking failed:", data.message);
-      }
+    try {
+      // Dispatch the action to book the appointment
+      dispatch(bookAppointment(appointment));
+      console.log("Appointment booked successfully");
     } catch (error) {
       console.error("Booking error:", error);
+    }
+  };
+
+  const handleDoctorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedDoctorId = e.target.value;
+    setDoctorId(selectedDoctorId);
+
+    // Log to check doctorId
+    console.log("Selected doctor ID:", selectedDoctorId);
+
+    const selectedDoctor = doctors.find((doctor) => doctor._id === selectedDoctorId);  // Match by _id instead of id
+    
+    if (selectedDoctor) {
+      setDoctorName(selectedDoctor.name);  // Correctly set doctorName if the doctor is found
+      console.log("Doctor Name:", selectedDoctor.name);
+    } else {
+      console.error("Doctor not found for the selected ID");
     }
   };
 
@@ -117,25 +105,31 @@ const AppointmentForm = () => {
         <select
           id="doctorId"
           value={doctorId}
-          onChange={(e) => setDoctorId(e.target.value)}
+          onChange={handleDoctorChange}  // Use the handleDoctorChange function
           required
           className="w-full p-2 rounded"
         >
           <option value="">Select a doctor</option>
-          {doctors.map((doctor) => (
-            <option key={doctor.id} value={doctor.id}>
+          {doctors.map((doctor, index) => (
+            <option key={index} value={doctor._id}>  {/* Use _id here instead of id */}
               {doctor.name}
             </option>
           ))}
         </select>
       </div>
 
-      <Input
-        type="datetime-local"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        required
-      />
+      <div>
+        <label htmlFor="appointmentDate" className="block text-white mb-2">
+          Appointment Date
+        </label>
+        <Input
+          type="datetime-local"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+          className="w-full p-2 rounded"
+        />
+      </div>
 
       <Button type="submit">Book Appointment</Button>
     </form>

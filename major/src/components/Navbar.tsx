@@ -6,8 +6,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/Button";
 import { Menu, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/lib/redux/store";
-import { logout } from "@/lib/redux/features/authSlice";
+import { AppDispatch, RootState } from "@/lib/redux/store"; // Ensure this imports the correct RootState type
+import { logoutUser } from "@/lib/redux/features/authSlice";
 
 interface NavItem {
   href: string;
@@ -16,27 +16,13 @@ interface NavItem {
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>(); 
   const { user } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = async (): Promise<void> => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // This ensures that cookies are sent with the request
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-
-      dispatch(logout());
+      // Perform the logout operation using the correct Redux action
+      dispatch(logoutUser());
     } catch (e) {
       if (e instanceof Error) {
         console.error("Error occurred:", e.message);
