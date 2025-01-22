@@ -4,11 +4,11 @@ const User = require("../models/User");
 // Create new appointment
 const createAppointment = async (req, res) => {
   const { doctorId, patientId, appointmentDate, status } = req.body;
-
+  console.log(doctorId,patientId,"req body",req.body)
   try {
     const doctor = await User.findById(doctorId);
     const patient = await User.findById(patientId);
-
+   
     if (!doctor || !patient) {
       return res.status(404).json({ message: "Doctor or Patient not found" });
     }
