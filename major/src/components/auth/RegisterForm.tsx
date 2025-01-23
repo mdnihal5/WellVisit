@@ -2,41 +2,39 @@
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { registerUser } from "@/lib/redux/features/authSlice"; // Import the registerUser async thunk
+import { registerUser } from "@/lib/redux/features/authSlice";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { AppDispatch } from "@/lib/redux/store"; // Add this import for correct dispatch typing
+import { AppDispatch } from "@/lib/redux/store";
 
 const RegisterForm = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("patient");
-  const [availability, setAvailability] = useState(""); // Added state for availability
+  const [availability, setAvailability] = useState("");
+  const [speciality, setSpeciality] = useState(""); // Added state for speciality
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch<AppDispatch>(); // Use the correct dispatch type
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    // Collect user details
-    const userDetails = { name, email, password, role, availability };
+    const userDetails = { name, email, password, role, availability, speciality };
 
     try {
-      // Dispatch the registerUser async thunk
       const action = await dispatch(registerUser(userDetails));
 
-      // Check if the registration was successful
       if (registerUser.fulfilled.match(action)) {
-        // Registration successful, proceed with success (e.g., navigate or show success message)
+        // Success logic here (e.g., redirect or success message)
       } else {
         setError(action.error.message || "Registration failed. Please try again.");
       }
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -44,7 +42,7 @@ const RegisterForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 text-white">
       {error && <p className="text-red-500">{error}</p>}
       <Input
         type="text"
@@ -89,13 +87,22 @@ const RegisterForm = () => {
       </div>
 
       {role === "doctor" && (
-        <Input
-          type="text"
-          value={availability}
-          onChange={(e) => setAvailability(e.target.value)}
-          placeholder="Availability (e.g., 9am-5pm)"
-          required
-        />
+        <>
+          <Input
+            type="text"
+            value={availability}
+            onChange={(e) => setAvailability(e.target.value)}
+            placeholder="Availability (e.g., 9am-5pm)"
+            required
+          />
+          <Input
+            type="text"
+            value={speciality}
+            onChange={(e) => setSpeciality(e.target.value)}
+            placeholder="Speciality (e.g., Cardiologist)"
+            required
+          />
+        </>
       )}
 
       <Button type="submit" disabled={loading}>

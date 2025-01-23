@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchFromAPI } from "@/lib/utils"; // Import the utility for API requests
+import { fetchFromAPI } from "@/lib/utils";
 
-interface Doctor {
-  id: string;
+
+export interface Doctor {
+  _id: string;
   name: string;
   email?: string;
   availability?: string;
+  speciality?: string; 
 }
 
 interface DoctorState {
@@ -20,10 +22,10 @@ const initialState: DoctorState = {
   error: null,
 };
 
-// Fetch all doctors
+
 export const fetchDoctors = createAsyncThunk("doctors/fetchDoctors", async () => {
   const data = await fetchFromAPI("/doctors");
-  return data; // Return the list of doctors
+  return data; 
 });
 
 const doctorSlice = createSlice({
@@ -38,7 +40,7 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchDoctors.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload;
+        state.list = action.payload; // Assuming API returns the list with `speciality`
       })
       .addCase(fetchDoctors.rejected, (state, action) => {
         state.loading = false;

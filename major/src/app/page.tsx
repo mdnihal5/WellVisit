@@ -1,7 +1,24 @@
+"use client"
+import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import React from "react";
 import { FaStar } from "react-icons/fa";
+import { fetchAppointments } from "@/lib/redux/features/appointmentSlice";
+import { fetchDoctors } from "@/lib/redux/features/doctorSlice";
+import { AppDispatch, RootState } from "@/lib/redux/store";
+import Link from "next/link";
+
 const LandingPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector((state:RootState) => state.auth.isAuthenticated);
+  const user = useSelector((state:RootState) => state.auth.user);
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchDoctors()); 
+      dispatch(fetchAppointments()); 
+    }
+  }, [dispatch, isAuthenticated]);
+
   return (
     <div className="min-h-screen text-gray-100">
       {/* Hero Section */}
@@ -51,9 +68,9 @@ const LandingPage = () => {
               and healthcare providers. With WellVisit, never miss an
               appointment again and ensure seamless communication.
             </p>
-            <Button className="my-2" variant="secondary">
+            <Link  href={`/doctors`}><Button className="my-2" variant="secondary">
               Book Your Appointment Here
-            </Button>
+            </Button></Link>
           </div>
 
           {/* Patient Records Feature */}
@@ -64,15 +81,15 @@ const LandingPage = () => {
               WellVisit allows you to track medical history, prescriptions, and
               appointments, all in one place.
             </p>
-            <Button className="my-2" variant="secondary">
-              Get Your History
-            </Button>
+            <Link href={`/dashboard/${user?.role?user.role:''}`}><Button className="my-2" variant="secondary">
+              Dashboard
+            </Button></Link>
           </div>
         </div>
       </section>
 
       {/* Specialties Section */}
-      <section id="specialties" className="py-10  bg-violet-700 px-6 lg:px-20">
+      <section id="specialties" className="py-10 bg-violet-700 px-6 lg:px-20">
         <h3 className="text-3xl font-bold text-center text-white mb-8">
           Types of Services (Specialties)
         </h3>
