@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchFromAPI } from "@/lib/utils"; // Import the utility for API requests
+import { fetchFromAPI } from "@/lib/utils";
 
 interface Appointment {
-  id?: string;
+  _id: string;
   doctorId: string;
   patientId: string;
   appointmentDate: string;
@@ -13,94 +13,137 @@ interface Appointment {
 
 interface AppointmentState {
   list: Appointment[];
-  loading: boolean;
+  fetchLoading: boolean;
+  bookLoading: boolean;
+  updateLoading: boolean;
+  cancelLoading: boolean;
   error: string | null;
 }
 
 const initialState: AppointmentState = {
   list: [],
-  loading: false,
+  fetchLoading: false,
+  bookLoading: false,
+  updateLoading: false,
+  cancelLoading: false,
   error: null,
 };
 
 // Fetch all appointments
-export const fetchAppointments = createAsyncThunk(
+export const fetchAppointments = createAsyncThunk<Appointment[]>(
   "appointments/fetchAppointments",
   async () => {
     const data = await fetchFromAPI("/appointments");
-    return data; // Ensure the returned data contains all necessary fields like doctorId, patientId, etc.
+    return data;
   }
 );
 
 // Book an appointment
-export const bookAppointment = createAsyncThunk(
+export const bookAppointment = createAsyncThunk<Appointment, Partial<Appointment>>(
   "appointments/bookAppointment",
-  async (appointment: Appointment) => {
+  async (appointment) => {
     const data = await fetchFromAPI("/appointments", {
       method: "POST",
       body: JSON.stringify(appointment),
     });
-    return data; // Ensure the booked appointment contains all fields like doctorId, patientId, etc.
+    return data;
   }
 );
 
 // Update an appointment
-export const updateAppointment = createAsyncThunk(
+export const updateAppointment = createAsyncThunk<Appointment, Appointment>(
   "appointments/updateAppointment",
-  async (appointment: Appointment) => {
-    const data = await fetchFromAPI(`/appointments/${appointment.id}`, {
+  async (appointment) => {
+    const data = await fetchFromAPI(`/appointments/${appointment._id}`, {
       method: "PUT",
       body: JSON.stringify(appointment),
     });
-    return data; // Ensure the updated appointment contains all fields like doctorId, patientId, etc.
+    return data;
   }
 );
 
 // Cancel an appointment
-export const cancelAppointment = createAsyncThunk(
+export const cancelAppointment = createAsyncThunk<string, string>(
   "appointments/cancelAppointment",
-  async (appointmentId: string) => {
-    const data = await fetchFromAPI(`/appointments/${appointmentId}`, {
+  async (appointmentId) => {
+    await fetchFromAPI(`/appointments/${appointmentId}`, {
       method: "DELETE",
     });
-    return appointmentId; // Return the appointment ID that was canceled
+    return appointmentId;
   }
 );
 
 const appointmentSlice = createSlice({
   name: "appointments",
   initialState,
-  reducers: {},
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
+      // Fetch Appointments
       .addCase(fetchAppointments.pending, (state) => {
-        state.loading = true;
+        state.fetchLoading = true;
         state.error = null;
       })
       .addCase(fetchAppointments.fulfilled, (state, action) => {
-        state.loading = false;
+        state.fetchLoading = false;
         state.list = action.payload;
       })
       .addCase(fetchAppointments.rejected, (state, action) => {
-        state.loading = false;
+        state.fetchLoading = false;
         state.error = action.error.message || "Error fetching appointments";
       })
+
+      // Book Appointment
+      .addCase(bookAppointment.pending, (state) => {
+        state.bookLoading = true;
+        state.error = null;
+      })
       .addCase(bookAppointment.fulfilled, (state, action) => {
+        state.bookLoading = false;
         state.list.push(action.payload);
       })
+      .addCase(bookAppointment.rejected, (state, action) => {
+        state.bookLoading = false;
+        state.error = action.error.message || "Error booking appointment";
+      })
+
+      // Update Appointment
+      .addCase(updateAppointment.pending, (state) => {
+        state.updateLoading = true;
+        state.error = null;
+      })
       .addCase(updateAppointment.fulfilled, (state, action) => {
-        const index = state.list.findIndex((a) => a.id === action.payload.id);
+        state.updateLoading = false;
+        const index = state.list.findIndex((a) => a._id === action.payload._id);
         if (index !== -1) {
           state.list[index] = action.payload;
         }
       })
-      .addCase(cancelAppointment.fulfilled, (state, action) => {
-        const index = state.list.findIndex((a) => a.id === action.payload);
-        if (index !== -1) {
-          state.list[index].status = "cancelled";
-        }
+      .addCase(updateAppointment.rejected, (state, action) => {
+        state.updateLoading = false;
+        state.error = action.error.message || "Error updating appointment";
+      })
+
+      // Cancel Appointment (with Optimistic Updates)
+      .addCase(cancelAppointment.pending, (state, action) => {
+        state.cancelLoading = true;
+        state.error = null;
+        // Optimistically remove the appointment
+        state.list = state.list.filter((a) => a._id !== action.meta.arg);
+      })
+      .addCase(cancelAppointment.fulfilled, (state) => {
+        state.cancelLoading = false;
+      })
+      .addCase(cancelAppointment.rejected, (state, action) => {
+        state.cancelLoading = false;
+        state.error = action.error.message || "Error canceling appointment";
       });
   },
 });
 
+export const { clearError } = appointmentSlice.actions;
 export default appointmentSlice.reducer;

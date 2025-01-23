@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/Button";
 import { Menu, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/lib/redux/store"; // Ensure this imports the correct RootState type
+import { AppDispatch, RootState } from "@/lib/redux/store";
 import { logoutUser } from "@/lib/redux/features/authSlice";
 
 interface NavItem {
@@ -16,12 +16,11 @@ interface NavItem {
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const dispatch = useDispatch<AppDispatch>(); 
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = async (): Promise<void> => {
     try {
-      // Perform the logout operation using the correct Redux action
       dispatch(logoutUser());
     } catch (e) {
       if (e instanceof Error) {
@@ -31,10 +30,13 @@ export default function Header() {
   };
 
   const authenticatedNavItems: NavItem[] = [
-    { href: "/", label: "Home" },
-    { href: `/dashboard/${user?.role}`, label: "Dashboard" },
-    { href: `/profile/${user?.role}`, label: "Profile" },
-    { href: "/appointments", label: "Appointments" },
+    { href: `/dashboard/${user?.role}`, label: "Dashboard" }, // Always visible
+    ...(user?.role !== "doctor"
+      ? [
+          { href: "/doctors", label: "Doctors" },
+        ]
+      : []),
+    { href: "/chat", label: "AI Assistant" }, // New route for AI Assistant
   ];
 
   return (

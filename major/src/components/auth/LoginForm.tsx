@@ -35,7 +35,7 @@ const LoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 text-white">
       {error && <p className="text-red-500">{error}</p>}
       <Input
         type="email"
