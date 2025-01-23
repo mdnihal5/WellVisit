@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchFromAPI } from "@/lib/utils"; // Import the utility for API requests
 
 interface Appointment {
-  id?: string;
+  _id: string;
   doctorId: string;
   patientId: string;
   appointmentDate: string;
@@ -29,7 +29,7 @@ export const fetchAppointments = createAsyncThunk(
   async () => {
     const data = await fetchFromAPI("/appointments");
     return data; // Ensure the returned data contains all necessary fields like doctorId, patientId, etc.
-  }
+  },
 );
 
 // Book an appointment
@@ -40,31 +40,42 @@ export const bookAppointment = createAsyncThunk(
       method: "POST",
       body: JSON.stringify(appointment),
     });
-    return data; // Ensure the booked appointment contains all fields like doctorId, patientId, etc.
-  }
+    return data.appointment; // Ensure the booked appointment contains all fields like doctorId, patientId, etc.
+  },
 );
 
 // Update an appointment
 export const updateAppointment = createAsyncThunk(
   "appointments/updateAppointment",
   async (appointment: Appointment) => {
-    const data = await fetchFromAPI(`/appointments/${appointment.id}`, {
+    const data = await fetchFromAPI(`/appointments/${appointment._id}`, {
       method: "PUT",
       body: JSON.stringify(appointment),
     });
     return data; // Ensure the updated appointment contains all fields like doctorId, patientId, etc.
-  }
+  },
 );
 
-// Cancel an appointment
+// Cancel an appointment (status change)
 export const cancelAppointment = createAsyncThunk(
   "appointments/cancelAppointment",
-  async (appointmentId: string) => {
-    const data = await fetchFromAPI(`/appointments/${appointmentId}`, {
+  async (_id: string) => {
+    const data = await fetchFromAPI(`/appointments/${_id}`, {
       method: "DELETE",
     });
-    return appointmentId; // Return the appointment ID that was canceled
-  }
+    return _id; // Return the appointment ID that was canceled
+  },
+);
+
+// Delete an appointment permanently
+export const deleteAppointment = createAsyncThunk(
+  "appointments/deleteAppointment",
+  async (_id: string) => {
+    await fetchFromAPI(`/appointments/${_id}`, {
+      method: "DELETE",
+    });
+    return _id; // Return the appointment ID that was deleted permanently
+  },
 );
 
 const appointmentSlice = createSlice({
@@ -86,19 +97,20 @@ const appointmentSlice = createSlice({
         state.error = action.error.message || "Error fetching appointments";
       })
       .addCase(bookAppointment.fulfilled, (state, action) => {
-        state.list.push(action.payload);
+        state.list = [...state.list, action.payload];
       })
       .addCase(updateAppointment.fulfilled, (state, action) => {
-        const index = state.list.findIndex((a) => a.id === action.payload.id);
-        if (index !== -1) {
-          state.list[index] = action.payload;
-        }
+        state.list = state.list.map((a) =>
+          a._id === action.payload._id ? action.payload : a,
+        );
       })
       .addCase(cancelAppointment.fulfilled, (state, action) => {
-        const index = state.list.findIndex((a) => a.id === action.payload);
-        if (index !== -1) {
-          state.list[index].status = "cancelled";
-        }
+        state.list = state.list.map((a) =>
+          a._id === action.payload ? { ...a, status: "cancelled" } : a,
+        );
+      })
+      .addCase(deleteAppointment.fulfilled, (state, action) => {
+        state.list = state.list.filter((a) => a._id !== action.payload); // Delete the appointment permanently from the list
       });
   },
 });
