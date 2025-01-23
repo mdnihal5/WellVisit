@@ -128,8 +128,8 @@ export default function AppointmentList() {
         {appointments.map((appointment, index) => (
           <Card
             key={index}
-            className="overflow-hidden transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
-          >
+            className="overflow-hidden w-fit transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
+          > 
             <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
               <CardTitle className="text-xl font-semibold">
                 {user?.role === "doctor" ? appointment.patientName : appointment.doctorName}

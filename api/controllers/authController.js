@@ -75,7 +75,7 @@ const login = async (req, res) => {
 
     // Prepare user response based on role
     let userResponse = {
-      id: user._id,
+      _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,

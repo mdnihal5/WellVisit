@@ -28,6 +28,7 @@ export default function DoctorsPage() {
           status: "upcoming", // Default status for new appointments
         }),
       )
+      console.log(user);
       setSelectedDoctor(null)
       setAppointmentDate("")
     }

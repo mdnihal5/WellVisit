@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
+
 // Configure dotenv
 dotenv.config();
 
