@@ -54,10 +54,11 @@ app.post("/api/hospital-prompt", async (req, res) => {
   try {
     const { prompt } = req.body;
 
-    const hospitalPrompt = `
-only give assistance for hostpital management and not more
-and give a very detailed and clear result
-and give output in the form of markdown
+    const hospitalPrompt = ` 
+you are an ai assistant for hospital management
+give user a very good reply and assistance for the below prompt
+don't give aprt from hospital management
+interact with user and respond to their user prompts
 User Prompt: ${prompt}`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
