@@ -16,7 +16,9 @@ const register = async (req, res) => {
 
     // If role is doctor, check if availability is provided
     if (role === "doctor" && !availability) {
-      return res.status(400).json({ message: "Availability is required for doctors" });
+      return res
+        .status(400)
+        .json({ message: "Availability is required for doctors" });
     }
 
     // Only include availability if role is doctor
@@ -32,7 +34,7 @@ const register = async (req, res) => {
 
     // Remove password and prepare user response
     let userResponse = {
-      id: savedUser._id,
+      _id: savedUser._id,
       name: savedUser.name,
       email: savedUser.email,
       role: savedUser.role,
@@ -43,9 +45,13 @@ const register = async (req, res) => {
       userResponse.availability = savedUser.availability;
     }
 
-    res.status(201).json({ message: "User registered successfully", user: userResponse });
+    res
+      .status(201)
+      .json({ message: "User registered successfully", user: userResponse });
   } catch (err) {
-    res.status(500).json({ message: "Error registering user", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error registering user", error: err.message });
   }
 };
 
