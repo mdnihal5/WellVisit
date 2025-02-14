@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button"; // Customize as needed
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { fetchFromAPI } from "@/lib/utils"; // Assuming fetchFromAPI is defined in lib/api.ts
 import ReactMarkdown from "react-markdown"; // Import react-markdown
