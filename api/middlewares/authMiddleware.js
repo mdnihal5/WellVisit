@@ -1,10 +1,14 @@
 const jwt = require("jsonwebtoken");
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || "secret_key";
 
-// Verify JWT Token
 const verifyToken = (req, res, next) => {
-  const token = req.cookies.token; // Get token from cookies
-
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res
+      .status(403)
+      .json({ message: "Authorization header is required" });
+  }
+  const token = authHeader.split(" ")[1];
   if (!token) {
     return res.status(403).json({ message: "Token is required" });
   }
@@ -13,7 +17,7 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(401).json({ message: "Invalid token" });
     }
-    req.user = decoded; // Attach decoded token data to request object
+    req.user = decoded;
     next();
   });
 };

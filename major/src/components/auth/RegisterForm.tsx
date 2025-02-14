@@ -13,13 +13,13 @@ const RegisterForm = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("patient");
   const [availability, setAvailability] = useState("");
-  const [speciality, setSpeciality] = useState(""); // Added state for speciality
-  const [error, setError] = useState<string | null>(null);
+  const [speciality, setSpeciality] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e:any) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -30,7 +30,7 @@ const RegisterForm = () => {
       const action = await dispatch(registerUser(userDetails));
 
       if (registerUser.fulfilled.match(action)) {
-        // Success logic here (e.g., redirect or success message)
+        // Success logic here (e.g., redirect or display a success message)
       } else {
         setError(action.error.message || "Registration failed. Please try again.");
       }
@@ -113,3 +113,4 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+

@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["doctor", "patient"], required: true },
   availability: {
     type: String,
-    required: function () { return this.role === "doctor";  },
+    required: function () {
+      return this.role === "doctor";
+    },
   },
 });
 

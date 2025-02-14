@@ -3,9 +3,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || "secret_key";
 
-// Register User
 const register = async (req, res) => {
-  const { name, email, password, role, availability } = req.body;
+  const { name, email, password, role, availability, speciality } = req.body;
   try {
     const userExists = await User.findOne({ email });
     if (userExists)
@@ -14,25 +13,23 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // If role is doctor, check if availability is provided
     if (role === "doctor" && !availability) {
       return res
         .status(400)
         .json({ message: "Availability is required for doctors" });
     }
 
-    // Only include availability if role is doctor
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       role,
-      availability: role === "doctor" ? availability : undefined, // Add availability only for doctors
+      availability: role === "doctor" ? availability : undefined,
+      speciality: role === "doctor" ? speciality : undefined,
     });
 
     const savedUser = await newUser.save();
 
-    // Remove password and prepare user response
     let userResponse = {
       _id: savedUser._id,
       name: savedUser.name,
@@ -40,14 +37,20 @@ const register = async (req, res) => {
       role: savedUser.role,
     };
 
-    // If role is doctor, add availability field
-    if (savedUser.role === "doctor" && savedUser.availability) {
-      userResponse.availability = savedUser.availability;
+    if (savedUser.role === "doctor") {
+      if (savedUser.availability) userResponse.availability = savedUser.availability;
+      if (savedUser.speciality) userResponse.speciality = savedUser.speciality;
     }
+
+    const token = jwt.sign(
+      { userId: savedUser._id, role: savedUser.role },
+      JWT_SECRET_KEY,
+      { expiresIn: "1h" }
+    );
 
     res
       .status(201)
-      .json({ message: "User registered successfully", user: userResponse });
+      .json({ message: "User registered successfully", token, user: userResponse });
   } catch (err) {
     res
       .status(500)
@@ -55,7 +58,6 @@ const register = async (req, res) => {
   }
 };
 
-// Login User
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -70,16 +72,9 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       JWT_SECRET_KEY,
-      { expiresIn: "1h" },
+      { expiresIn: "1h" }
     );
 
-    // Set cookie for token
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Set this to true in production
-    });
-
-    // Prepare user response based on role
     let userResponse = {
       _id: user._id,
       name: user.name,
@@ -87,9 +82,9 @@ const login = async (req, res) => {
       role: user.role,
     };
 
-    // If role is doctor, include availability
-    if (user.role === "doctor" && user.availability) {
-      userResponse.availability = user.availability;
+    if (user.role === "doctor") {
+      if (user.availability) userResponse.availability = user.availability;
+      if (user.speciality) userResponse.speciality = user.speciality;
     }
 
     res.json({ message: "Logged in successfully", token, user: userResponse });
@@ -98,10 +93,9 @@ const login = async (req, res) => {
   }
 };
 
-// Logout User
 const logout = (req, res) => {
-  res.clearCookie("token");
   res.json({ message: "Logged out successfully" });
 };
 
 module.exports = { register, login, logout };
+

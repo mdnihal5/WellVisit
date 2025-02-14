@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchFromAPI } from "@/lib/utils"; // Utility for API requests
+import { fetchFromAPI } from "@/lib/utils";
 
 // User interface
 interface User {
@@ -7,23 +7,23 @@ interface User {
   name: string;
   email: string;
   role: "doctor" | "patient";
-  availability?: string; // Only for doctors
-  speciality?: string; // Only for doctors
+  availability?: string;
+  speciality?: string;
 }
 
 // Auth state interface
 interface AuthState {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
 }
 
-// Initial state
 const initialState: AuthState = {
   user: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null,
+  token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
   isAuthenticated: typeof window !== "undefined" ? !!localStorage.getItem("user") : false,
 };
 
-// Async thunk: Login user
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (userCredentials: { email: string; password: string }) => {
@@ -31,35 +31,40 @@ export const loginUser = createAsyncThunk(
       method: "POST",
       body: JSON.stringify(userCredentials),
     });
-    return data.user; // Assuming the API returns user data
+    return data;
   }
 );
 
-// Async thunk: Register user
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
-  async (userDetails: { name: string; email: string; password: string; role: string; availability?: string; speciality?: string }) => {
+  async (userDetails: {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    availability?: string;
+    speciality?: string;
+  }) => {
     const data = await fetchFromAPI("/auth/register", {
       method: "POST",
       body: JSON.stringify(userDetails),
     });
-    return data.user; // Assuming the API returns the registered user data
+    return data;
   }
 );
 
-// Async thunk: Logout user
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   await fetchFromAPI("/auth/logout", { method: "GET" });
-  localStorage.removeItem("user"); // Remove user data from localStorage
-  return null; // Reset user state
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  return null;
 });
 
-// Auth slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // Reducer to update the profile (e.g., after editing user data)
+    // Reducer to update the profile (if needed)
     updateProfile: (state, action) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
@@ -70,23 +75,29 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
-        localStorage.setItem("user", JSON.stringify(action.payload));
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+        localStorage.setItem("token", action.payload.token);
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
-        localStorage.setItem("user", JSON.stringify(action.payload));
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+        localStorage.setItem("token", action.payload.token);
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.token = null;
         state.isAuthenticated = false;
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       });
   },
 });
 
-// Export actions and reducer
 export const { updateProfile } = authSlice.actions;
 export default authSlice.reducer;
+
