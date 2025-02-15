@@ -11,6 +11,12 @@ const userSchema = new mongoose.Schema({
       return this.role === "doctor";
     },
   },
+    speciality : {
+        type:String,
+        required:function(){
+            return this.role==="doctor";
+        }
+    }
 });
 
 module.exports = mongoose.model("User", userSchema);
