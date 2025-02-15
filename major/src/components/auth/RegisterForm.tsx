@@ -14,25 +14,33 @@ const RegisterForm = () => {
   const [role, setRole] = useState("patient");
   const [availability, setAvailability] = useState("");
   const [speciality, setSpeciality] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const handleSubmit = async (e:any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setError("");
+    setLoading(false);
 
-    const userDetails = { name, email, password, role, availability, speciality };
+    const userDetails = {
+      name,
+      email,
+      password,
+      role,
+      availability,
+      speciality,
+    };
 
     try {
       const action = await dispatch(registerUser(userDetails));
 
       if (registerUser.fulfilled.match(action)) {
-        // Success logic here (e.g., redirect or display a success message)
       } else {
-        setError(action.error.message || "Registration failed. Please try again.");
+        setError(
+          action.error.message || "Registration failed. Please try again.",
+        );
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -113,4 +121,3 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
-

@@ -4,19 +4,22 @@ import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { Doctor, fetchDoctors } from "@/lib/redux/features/doctorSlice"
 import { bookAppointment } from "@/lib/redux/features/appointmentSlice"
-import { AppDispatch,RootState } from "@/lib/redux/store"
+import { AppDispatch, RootState } from "@/lib/redux/store"
 
 export default function DoctorsPage() {
   const dispatch = useDispatch<AppDispatch>()
   const doctors = useSelector((state: RootState) => state.doctors.list)
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
   const [appointmentDate, setAppointmentDate] = useState("")
-  const { user } = useSelector((state: RootState) => state.auth);
-  if(!user) return <h1 className="text-white text-2xl">This feature is only available for Patients...</h1>;
+  const { user } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
     dispatch(fetchDoctors())
   }, [dispatch])
+
+  if (!user) {
+    return <h1 className="text-white text-2xl">This feature is only available for Patients...</h1>
+  }
 
   const handleBookAppointment = () => {
     if (selectedDoctor && appointmentDate) {
@@ -25,10 +28,9 @@ export default function DoctorsPage() {
           doctorId: selectedDoctor._id,
           patientId: user?._id,
           appointmentDate,
-          status: "upcoming", // Default status for new appointments
-        }),
+          status: "upcoming",
+        })
       )
-      console.log(user);
       setSelectedDoctor(null)
       setAppointmentDate("")
     }

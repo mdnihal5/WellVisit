@@ -1,20 +1,6 @@
-import * as path from "path";
-import { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@": path.resolve(__dirname, "src"),
-    };
-    return config;
-  },
-  typescript: {
-    ignoreBuildErrors: false, // Set false for safer builds
-  },
-  eslint: {
-    ignoreDuringBuilds: false, // Set false for proper linting
-  },
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  /* config options here */
 };
 
-export default nextConfig;
+module.exports = nextConfig; 

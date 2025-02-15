@@ -31,7 +31,11 @@ export const fetchFromAPI = async (
     }
 
     return await response.json();
-  } catch (error: any) {
+  } catch (error) {
+  if (error instanceof Error) {
     throw new Error(error.message || "Something went wrong.");
+  } else {
+    throw new Error("Something went wrong.");
   }
+}
 };

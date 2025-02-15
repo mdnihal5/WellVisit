@@ -1,13 +1,14 @@
-"use client"
+"use client";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 import LoginForm from "@/components/auth/LoginForm";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/lib/redux/store";
+import {  useSelector } from "react-redux";
+import {  RootState } from "@/lib/redux/store";
 
 export default function LoginPage() {
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated); // Get auth state from Redux
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  ); // Get auth state from Redux
 
   // Redirect if user is authenticated
   if (isAuthenticated) {

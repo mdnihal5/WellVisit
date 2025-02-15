@@ -18,7 +18,7 @@ export default function PatientDashboard() {
     <div className="container mx-auto px-4 py-8 w-screen text-white">
       <h1 className="text-3xl font-bold mb-8">Patient Dashboard</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="md:w-[1450px]">
+        <Card className="">
           <CardHeader>
             <CardTitle>Your Appointments</CardTitle>
           </CardHeader>
